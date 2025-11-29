@@ -12,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = PersonProductivityApp.class)
 @AutoConfigureMockMvc
 @Transactional
+@ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class PersonControllerIntegrationTest {
 
@@ -265,5 +267,24 @@ class PersonControllerIntegrationTest {
         mockMvc.perform(get("/persons/email/{email}", "nonexistent@example.com"))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(containsString("Person not found with email")));
+    }
+
+    @Test
+    @Order(16)
+    void getPersonsPaged_returnsPage() throws Exception {
+        // create 25 persons
+        for (int i = 0; i < 25; i++) {
+            Person p = new Person();
+            p.setName("Person " + i);
+            p.setEmail("person" + i + "@example.com");
+            personRepository.save(p);
+        }
+
+        mockMvc.perform(get("/persons/paged")
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(10))
+                .andExpect(jsonPath("$.totalElements").value(25));
     }
 }

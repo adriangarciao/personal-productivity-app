@@ -79,7 +79,7 @@ public class Task {
     /**
      * The person who owns this task.
      */
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "person_id", nullable = false)
     private Person person;
 
