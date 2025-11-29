@@ -83,7 +83,6 @@ class TaskControllerIntegrationTest {
         taskRepository.deleteAll();
         personRepository.deleteAll();
 
-
         entityManager.flush();
         entityManager.clear();
     }
@@ -200,6 +199,133 @@ class TaskControllerIntegrationTest {
         assertNotNull(finishedTask.getCompletionDate());
     }
 
+    @Test
+    void unfinishTask_MarksTaskAsUnfinished() throws Exception {
+        Task savedTask = createAndSaveTask("Task to flip", "Description");
+
+        mockMvc.perform(patch("/tasks/{id}/finish", savedTask.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.finished").value(true));
+
+        mockMvc.perform(patch("/tasks/{id}/unfinish", savedTask.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.finished").value(false));
+
+        Task updated = taskRepository.findById(savedTask.getId()).orElseThrow();
+        assertFalse(updated.getFinished());
+    }
+
+    @Test
+    void getAllTasks_ReturnsAllTasks() throws Exception {
+        createAndSaveTask("Task A", "A");
+        createAndSaveTask("Task B", "B");
+
+        mockMvc.perform(get("/tasks"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content.length()").value(2));
+    }
+
+    @Test
+    void getTasksByPerson_ReturnsOnlyPersonsTasks() throws Exception {
+        Task taskForTestPerson = createAndSaveTask("Mine", "desc");
+
+        Person otherPerson = new Person("other@example.com", "Other User");
+        otherPerson = personRepository.save(otherPerson);
+        Task taskForOther = createAndSaveTaskWithOwner("Other Task", "desc", otherPerson);
+
+        mockMvc.perform(get("/tasks/person/{personId}", testPerson.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].title").value(taskForTestPerson.getTitle()));
+
+        assertTrue(taskRepository.existsById(taskForOther.getId()));
+    }
+
+    @Test
+    void deleteAllTasks_RemovesEverything() throws Exception {
+        createAndSaveTask("Task A", "A");
+        createAndSaveTask("Task B", "B");
+
+        mockMvc.perform(delete("/tasks/all"))
+                .andExpect(status().isOk());
+
+        assertEquals(0, taskRepository.count());
+    }
+
+    @Test
+    void filterByCategory_ReturnsMatchingTasks() throws Exception {
+        Task workTask = createAndSaveTaskWithCategory("Work Task", Task.Category.WORK);
+        createAndSaveTaskWithCategory("Personal Task", Task.Category.PERSONAL);
+
+        mockMvc.perform(get("/tasks/category/{category}", Task.Category.WORK))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].title").value(workTask.getTitle()));
+    }
+
+    @Test
+    void filterByPriority_ReturnsMatchingTasks() throws Exception {
+        Task high = createAndSaveTaskWithPriority("High Task", Task.Priority.HIGH);
+        createAndSaveTaskWithPriority("Low Task", Task.Priority.LOW);
+
+        mockMvc.perform(get("/tasks/priority/{priority}", Task.Priority.HIGH))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].title").value(high.getTitle()));
+    }
+
+    @Test
+    void sortByDueDate_ReturnsAscendingByDefault() throws Exception {
+        Task early = createAndSaveTaskWithDueDate("Early", LocalDateTime.now().plusDays(1));
+        Task later = createAndSaveTaskWithDueDate("Later", LocalDateTime.now().plusDays(3));
+
+        mockMvc.perform(get("/tasks/sort/dueDate"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value(early.getTitle()))
+                .andExpect(jsonPath("$[1].title").value(later.getTitle()));
+    }
+
+    @Test
+    void sortByPriority_ReturnsDescendingWhenRequested() throws Exception {
+        Task low = createAndSaveTaskWithPriority("Low Task", Task.Priority.LOW);
+        Task high = createAndSaveTaskWithPriority("High Task", Task.Priority.HIGH);
+
+        mockMvc.perform(get("/tasks/sort/priority")
+                        .param("order", "desc"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value(low.getTitle()))
+                .andExpect(jsonPath("$[1].title").value(high.getTitle()));
+    }
+
+    @Test
+    void findTaskForPersonInBetweenDates_FiltersByRange() throws Exception {
+        LocalDateTime now = LocalDateTime.now();
+        Task inside = createAndSaveTaskWithDueDate("Inside", now.plusDays(2));
+        createAndSaveTaskWithDueDate("Outside", now.plusDays(10));
+
+        mockMvc.perform(get("/tasks/{personId}", testPerson.getId())
+                        .param("startDate", now.plusDays(1).toString())
+                        .param("endDate", now.plusDays(5).toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].title").value(inside.getTitle()));
+    }
+
+    @Test
+    void getTasksPaged_returnsPage() throws Exception {
+        // create 15 tasks
+        for (int i = 0; i < 15; i++) {
+            createAndSaveTask("T" + i, "desc");
+        }
+
+        mockMvc.perform(get("/tasks")
+                .param("page", "0")
+                .param("size", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(5))
+                .andExpect(jsonPath("$.totalElements").value(15));
+    }
+
 
     // Helper method for creating test data
 
@@ -217,6 +343,37 @@ class TaskControllerIntegrationTest {
                 .orElseThrow(() -> new RuntimeException("Test person not found"));
         task.setPerson(managedPerson);
 
+        return taskRepository.save(task);
+    }
+
+    private Task createAndSaveTaskWithOwner(String title, String description, Person owner) {
+        Task task = new Task();
+        task.setTitle(title);
+        task.setDescription(description);
+        task.setCreationDate(LocalDateTime.now());
+        task.setDueDate(LocalDateTime.now().plusDays(1));
+        task.setFinished(false);
+        task.setPriority(Task.Priority.MEDIUM);
+        task.setCategory(Task.Category.WORK);
+        task.setPerson(owner);
+        return taskRepository.save(task);
+    }
+
+    private Task createAndSaveTaskWithCategory(String title, Task.Category category) {
+        Task task = createAndSaveTask(title, "desc");
+        task.setCategory(category);
+        return taskRepository.save(task);
+    }
+
+    private Task createAndSaveTaskWithPriority(String title, Task.Priority priority) {
+        Task task = createAndSaveTask(title, "desc");
+        task.setPriority(priority);
+        return taskRepository.save(task);
+    }
+
+    private Task createAndSaveTaskWithDueDate(String title, LocalDateTime dueDate) {
+        Task task = createAndSaveTask(title, "desc");
+        task.setDueDate(dueDate);
         return taskRepository.save(task);
     }
 }

@@ -4,17 +4,27 @@ A Spring Boot backend application for managing people and their tasks.
 Uses **PostgreSQL** as the database 🐘.
 
 ---
-
 ## Features ✨
 - [x] Manage people (create, read, update, delete) 👤
-- [x] Manage tasks linked to people 📝
-- [x] Full CRUD functionality for both entities ✅
-- [x] Integration with PostgreSQL 🐘
-- [x] Comprehensive test coverage:
-    - Service tests for `Person` and `Task` 🧪
-    - Integration tests covering all CRUD operations 🔄
 
----
+Environment
+-----------
+
+The application reads datasource configuration from environment variables. Set the following when running locally or in production:
+
+- `SPRING_DATASOURCE_URL` (default: `jdbc:postgresql://localhost:5432/person_productivity_db`)
+- `SPRING_DATASOURCE_USERNAME` (default: `postgres`)
+- `SPRING_DATASOURCE_PASSWORD` (no default)
+
+Swagger UI
+----------
+
+After starting the application, Swagger UI is available at `/swagger-ui.html` or `/swagger-ui/index.html`.
+
+CI
+--
+
+A GitHub Actions workflow is included at `.github/workflows/maven.yml` that runs tests on push and pull requests to `master`.
 
 ## Technologies Used 💻
 - **Java 20**

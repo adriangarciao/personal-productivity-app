@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Rest Controller for managing Persons.
@@ -99,8 +101,8 @@ public class PersonController {
      * @return the list of all {@link PersonDto}s
      */
     @GetMapping
-    public List<PersonDto> getAllPersons(){
-        return personService.getAllPersons();
+    public Page<PersonDto> getAllPersons(Pageable pageable){
+        return personService.getAllPersons(pageable);
     }
 
     /**

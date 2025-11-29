@@ -12,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = PersonProductivityApp.class)
 @AutoConfigureMockMvc
 @Transactional
+@ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class PersonControllerIntegrationTest {
 
@@ -104,18 +106,18 @@ class PersonControllerIntegrationTest {
         personRepository.saveAll(List.of(person1, person2));
 
         mockMvc.perform(get("/persons"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].name").value("John Doe"))
-                .andExpect(jsonPath("$[1].name").value("Jane Smith"));
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content.length()").value(2))
+            .andExpect(jsonPath("$.content[0].name").value("John Doe"))
+            .andExpect(jsonPath("$.content[1].name").value("Jane Smith"));
     }
 
     @Test
     @Order(6)
     void getAllPersons_emptyList() throws Exception {
         mockMvc.perform(get("/persons"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(0));
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content.length()").value(0));
     }
 
     @Test
@@ -265,5 +267,24 @@ class PersonControllerIntegrationTest {
         mockMvc.perform(get("/persons/email/{email}", "nonexistent@example.com"))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(containsString("Person not found with email")));
+    }
+
+    @Test
+    @Order(16)
+    void getPersonsPaged_returnsPage() throws Exception {
+        // create 25 persons
+        for (int i = 0; i < 25; i++) {
+            Person p = new Person();
+            p.setName("Person " + i);
+            p.setEmail("person" + i + "@example.com");
+            personRepository.save(p);
+        }
+
+        mockMvc.perform(get("/persons")
+                .param("page", "0")
+                .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(10))
+                .andExpect(jsonPath("$.totalElements").value(25));
     }
 }
