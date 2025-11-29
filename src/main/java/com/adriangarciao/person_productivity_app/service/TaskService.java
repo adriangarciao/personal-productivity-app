@@ -12,6 +12,9 @@ import com.adriangarciao.person_productivity_app.repository.TaskRepository;
 import jakarta.validation.Valid;
 import com.adriangarciao.person_productivity_app.mapper.TaskMapper;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -85,6 +88,15 @@ public class TaskService {
     public List<TaskDto> getAllTask() {
 
         return taskMapper.tasksToTaskDtos(taskRepository.findAll());
+    }
+
+    /**
+     * Returns a page of TaskDto using Spring Data pagination.
+     */
+    public Page<TaskDto> getAllTask(Pageable pageable) {
+        var page = taskRepository.findAll(pageable);
+        var dtos = taskMapper.tasksToTaskDtos(page.getContent());
+        return new PageImpl<>(dtos, pageable, page.getTotalElements());
     }
 
     /**

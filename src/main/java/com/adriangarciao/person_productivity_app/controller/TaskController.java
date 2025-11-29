@@ -11,7 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import org.springframework.format.annotation.DateTimeFormat;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * REST controller for managing tasks.
@@ -70,6 +73,14 @@ public class TaskController {
     }
 
     /**
+     * Pageable tasks endpoint. Keep `/tasks` returning list; new `/tasks/paged` returns a Page with pagination metadata.
+     */
+    @GetMapping("/paged")
+    public Page<TaskDto> getAllTaskPaged(Pageable pageable) {
+        return taskService.getAllTask(pageable);
+    }
+
+    /**
      * Retrieves all tasks associated with a specific person.
      *
      * @param personId the ID of the person
@@ -125,7 +136,7 @@ public class TaskController {
      * @return a list of {@link TaskDto}s matching the due date
      */
     @GetMapping(value = "/task", params = "dueDate")
-    public List<TaskDto> filterByDueDate(@RequestBody LocalDateTime dueDate) {
+    public List<TaskDto> filterByDueDate(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dueDate) {
         return taskService.filterByDueDate(dueDate);
     }
 
@@ -136,9 +147,9 @@ public class TaskController {
      * @param endDate   the end of the date range
      * @return a list of {@link TaskDto}s within the date range
      */
-    @GetMapping(value = "/tasks", params = {"startDate", "endDate"})
-    public List<TaskDto> filterByDueDateRange(@RequestParam LocalDateTime startDate,
-                                              @RequestParam LocalDateTime endDate) {
+    @GetMapping(params = {"startDate", "endDate"})
+    public List<TaskDto> filterByDueDateRange(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+                                              @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
         return taskService.filterByDueDateRange(startDate, endDate);
     }
 

@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Rest Controller for managing Persons.
@@ -101,6 +103,15 @@ public class PersonController {
     @GetMapping
     public List<PersonDto> getAllPersons(){
         return personService.getAllPersons();
+    }
+
+    /**
+     * Returns a pageable list of persons. Backwards-compatible: keeps existing `/persons` endpoint returning a list.
+     * Pageable query params: `page`, `size`, `sort`.
+     */
+    @GetMapping("/paged")
+    public Page<PersonDto> getAllPersonsPaged(Pageable pageable) {
+        return personService.getAllPersons(pageable);
     }
 
     /**

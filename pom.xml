@@ -52,13 +52,6 @@
 			<scope>runtime</scope>
 		</dependency>
 
-		<!-- Lombok -->
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<optional>true</optional>
-		</dependency>
-
 		<!-- MapStruct -->
 		<dependency>
 			<groupId>org.mapstruct</groupId>
@@ -73,10 +66,22 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-inline</artifactId>
 			<version>5.2.0</version>
 			<scope>test</scope>
+		</dependency>
+
+		<!-- OpenAPI / Swagger UI -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>2.2.0</version>
 		</dependency>
 	</dependencies>
 
@@ -86,7 +91,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.1</version>
+				<version>3.13.0</version>
 				<configuration>
 					<source>${java.version}</source>
 					<target>${java.version}</target>
@@ -96,12 +101,22 @@
 							<artifactId>mapstruct-processor</artifactId>
 							<version>${org.mapstruct.version}</version>
 						</path>
-						<path>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-						</path>
 					</annotationProcessorPaths>
 				</configuration>
+				<executions>
+					<execution>
+						<id>default-testCompile</id>
+						<goals>
+							<goal>testCompile</goal>
+						</goals>
+						<configuration>
+							<annotationProcessorPaths/>
+							<compilerArgs>
+								<arg>-proc:none</arg>
+							</compilerArgs>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 
 			<!-- Spring Boot plugin -->

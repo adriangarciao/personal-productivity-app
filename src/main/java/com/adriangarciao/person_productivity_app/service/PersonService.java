@@ -8,6 +8,9 @@ import com.adriangarciao.person_productivity_app.mapper.PersonMapper;
 import com.adriangarciao.person_productivity_app.repository.PersonRepository;
 import com.adriangarciao.person_productivity_app.model.Person;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -107,6 +110,15 @@ public class PersonService {
      */
     public List<PersonDto> getAllPersons() {
         return personMapper.personsToPersonDtos(personRepository.findAll());
+    }
+
+    /**
+     * Returns a page of PersonDto using Spring Data pagination.
+     */
+    public Page<PersonDto> getAllPersons(Pageable pageable) {
+        var page = personRepository.findAll(pageable);
+        var dtos = personMapper.personsToPersonDtos(page.getContent());
+        return new PageImpl<>(dtos, pageable, page.getTotalElements());
     }
 
     /**
