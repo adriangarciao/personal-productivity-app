@@ -4,6 +4,7 @@ import com.adriangarciao.person_productivity_app.dto.TaskCreateDto;
 import com.adriangarciao.person_productivity_app.dto.TaskDto;
 import com.adriangarciao.person_productivity_app.model.Task;
 import org.mapstruct.Mapper;
+import com.adriangarciao.person_productivity_app.mapper.PersonMapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
@@ -14,15 +15,16 @@ import java.util.List;
  * Mapper interface for converting between Task entities and DTOs.
  * Uses MapStruct to automatically generate the mapping implementations.
  */
-@Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+@Mapper(componentModel = "spring", uses = {PersonMapper.class}, nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface TaskMapper {
 
     /**
      * Converts a Task entity to its corresponding TaskDto.
      *
-     * @param task the Task entity
+    @Mapper(componentModel = "spring", uses = PersonMapper.class, nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
      * @return the mapped TaskDto
      */
+    @Mapping(source = "creationDate", target = "creationTime")
     TaskDto taskToTaskDTO(Task task);
 
     /**
@@ -33,6 +35,8 @@ public interface TaskMapper {
      * @return the mapped Task entity
      */
     @Mapping(target = "person", ignore = true)
+    @Mapping(target = "creationDate", ignore = true)
+    @Mapping(target = "id", ignore = true)
     Task TaskDtoToTask(TaskDto taskDto);
 
     /**
@@ -43,6 +47,8 @@ public interface TaskMapper {
      * @param task    the Task entity to update
      */
     @Mapping(target = "person", ignore = true)
+    @Mapping(target = "creationDate", ignore = true)
+    @Mapping(target = "id", ignore = true)
     void updateTask(TaskDto taskDto, @MappingTarget Task task);
 
     /**
@@ -61,6 +67,8 @@ public interface TaskMapper {
      * @return the mapped Task entity
      */
     @Mapping(target = "person", ignore = true)
+    @Mapping(target = "creationDate", ignore = true)
+    @Mapping(target = "id", ignore = true)
     Task TaskCreateDtoToTask(TaskCreateDto taskCreateDto);
 
 //    Object writeValueAsString(TaskCreateDto sampleTaskCreateDto);

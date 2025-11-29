@@ -5,9 +5,13 @@ import com.adriangarciao.person_productivity_app.dto.TaskDto;
 import com.adriangarciao.person_productivity_app.model.Task;
 import com.adriangarciao.person_productivity_app.service.TaskService;
 import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -15,6 +19,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import com.adriangarciao.person_productivity_app.dto.PageResponse;
 
 /**
  * REST controller for managing tasks.
@@ -68,8 +73,15 @@ public class TaskController {
      * @return a list of all {@link TaskDto}s
      */
     @GetMapping
-    public Page<TaskDto> getAllTask(Pageable pageable) {
-        return taskService.getAllTask(pageable);
+    @Operation(summary = "Get tasks (paginated)", description = "Returns a paginated list of tasks wrapped in PageResponse")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(ref = "#/components/schemas/PageResponseTaskDto")))
+    })
+    public PageResponse<TaskDto> getAllTask(Pageable pageable) {
+        Page<TaskDto> page = taskService.getAllTask(pageable);
+        return new PageResponse<>(page.getContent(), page.getNumber(), page.getSize(), page.getTotalElements(), page.getTotalPages());
     }
 
     /**

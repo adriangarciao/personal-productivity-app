@@ -157,16 +157,17 @@ class TaskControllerIntegrationTest {
     void updateTask_ValidInput_UpdatesTask() throws Exception {
         Task savedTask = createAndSaveTask("Original Task", "Original Description");
 
+        var personDto = new com.adriangarciao.person_productivity_app.dto.PersonDto(testPerson.getId(), testPerson.getName(), testPerson.getEmail());
         TaskDto updateDto = new TaskDto(
-                "Updated Task",
-                "Updated Description",
-                savedTask.getCreationDate(),
-                LocalDateTime.now().plusDays(5),
-                null,
-                false,
-                Task.Priority.HIGH,
-                Task.Category.PERSONAL,
-                testPerson
+            "Updated Task",
+            "Updated Description",
+            savedTask.getCreationDate(),
+            LocalDateTime.now().plusDays(5),
+            null,
+            false,
+            Task.Priority.HIGH,
+            Task.Category.PERSONAL,
+            personDto
         );
 
         mockMvc.perform(patch("/tasks/{id}", savedTask.getId())
