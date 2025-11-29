@@ -106,18 +106,18 @@ class PersonControllerIntegrationTest {
         personRepository.saveAll(List.of(person1, person2));
 
         mockMvc.perform(get("/persons"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].name").value("John Doe"))
-                .andExpect(jsonPath("$[1].name").value("Jane Smith"));
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content.length()").value(2))
+            .andExpect(jsonPath("$.content[0].name").value("John Doe"))
+            .andExpect(jsonPath("$.content[1].name").value("Jane Smith"));
     }
 
     @Test
     @Order(6)
     void getAllPersons_emptyList() throws Exception {
         mockMvc.perform(get("/persons"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(0));
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content.length()").value(0));
     }
 
     @Test
@@ -280,9 +280,9 @@ class PersonControllerIntegrationTest {
             personRepository.save(p);
         }
 
-        mockMvc.perform(get("/persons/paged")
-                        .param("page", "0")
-                        .param("size", "10"))
+        mockMvc.perform(get("/persons")
+                .param("page", "0")
+                .param("size", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(10))
                 .andExpect(jsonPath("$.totalElements").value(25));

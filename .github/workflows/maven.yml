@@ -28,8 +28,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-m2-
 
-      - name: Build and run tests
-        run: ./mvnw -B -DskipTests=false clean test
+      - name: Ensure Maven wrapper executable and run build
+        run: |
+          if [ -f mvnw ]; then chmod +x mvnw; fi
+          if [ -x ./mvnw ]; then
+            ./mvnw -B -DskipTests=false clean test
+          else
+            mvn -B -DskipTests=false clean test
+          fi
 
       - name: Upload test results (JUnit)
         if: always()

@@ -68,15 +68,7 @@ public class TaskController {
      * @return a list of all {@link TaskDto}s
      */
     @GetMapping
-    public List<TaskDto> getAllTask() {
-        return taskService.getAllTask();
-    }
-
-    /**
-     * Pageable tasks endpoint. Keep `/tasks` returning list; new `/tasks/paged` returns a Page with pagination metadata.
-     */
-    @GetMapping("/paged")
-    public Page<TaskDto> getAllTaskPaged(Pageable pageable) {
+    public Page<TaskDto> getAllTask(Pageable pageable) {
         return taskService.getAllTask(pageable);
     }
 

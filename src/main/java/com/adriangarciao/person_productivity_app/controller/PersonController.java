@@ -101,16 +101,7 @@ public class PersonController {
      * @return the list of all {@link PersonDto}s
      */
     @GetMapping
-    public List<PersonDto> getAllPersons(){
-        return personService.getAllPersons();
-    }
-
-    /**
-     * Returns a pageable list of persons. Backwards-compatible: keeps existing `/persons` endpoint returning a list.
-     * Pageable query params: `page`, `size`, `sort`.
-     */
-    @GetMapping("/paged")
-    public Page<PersonDto> getAllPersonsPaged(Pageable pageable) {
+    public Page<PersonDto> getAllPersons(Pageable pageable){
         return personService.getAllPersons(pageable);
     }
 
