@@ -221,8 +221,8 @@ class TaskControllerIntegrationTest {
         createAndSaveTask("Task B", "B");
 
         mockMvc.perform(get("/tasks"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2));
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content.length()").value(2));
     }
 
     @Test
@@ -318,9 +318,9 @@ class TaskControllerIntegrationTest {
             createAndSaveTask("T" + i, "desc");
         }
 
-        mockMvc.perform(get("/tasks/paged")
-                        .param("page", "0")
-                        .param("size", "5"))
+        mockMvc.perform(get("/tasks")
+                .param("page", "0")
+                .param("size", "5"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(5))
                 .andExpect(jsonPath("$.totalElements").value(15));
