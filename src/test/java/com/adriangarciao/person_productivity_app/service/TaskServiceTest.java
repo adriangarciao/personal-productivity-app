@@ -65,6 +65,7 @@ class TaskServiceTest {
     }
 
     private TaskDto createTestTaskDto(Task task, Person person){
+        var personDto = new com.adriangarciao.person_productivity_app.dto.PersonDto(person.getId(), person.getName(), person.getEmail());
         TaskDto taskDto = new TaskDto(
                 task.getTitle(),
                 task.getDescription(),
@@ -74,7 +75,7 @@ class TaskServiceTest {
                 task.getFinished(),
                 task.getPriority(),
                 task.getCategory(),
-                task.getPerson()
+                personDto
         );
         return taskDto;
     }
@@ -102,8 +103,9 @@ class TaskServiceTest {
 
         Task task = createTestTask(createDto, person);
 
+        var personDto = new com.adriangarciao.person_productivity_app.dto.PersonDto(person.getId(), person.getName(), person.getEmail());
         TaskDto taskDto = new TaskDto(task.getTitle(), task.getDescription(), task.getCreationDate(), task.getDueDate(),
-                task.getCompletionDate(), task.getFinished(), task.getPriority(), task.getCategory(), task.getPerson());
+            task.getCompletionDate(), task.getFinished(), task.getPriority(), task.getCategory(), personDto);
 
 
         when(personRepository.findById(personId)).thenReturn(Optional.of(person));

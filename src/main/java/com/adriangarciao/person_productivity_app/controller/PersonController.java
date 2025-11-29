@@ -4,6 +4,11 @@ import com.adriangarciao.person_productivity_app.dto.PersonDto;
 import com.adriangarciao.person_productivity_app.model.Person;
 import com.adriangarciao.person_productivity_app.service.PersonService;
 import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import com.adriangarciao.person_productivity_app.dto.PageResponse;
 
 /**
  * Rest Controller for managing Persons.
@@ -101,8 +107,15 @@ public class PersonController {
      * @return the list of all {@link PersonDto}s
      */
     @GetMapping
-    public Page<PersonDto> getAllPersons(Pageable pageable){
-        return personService.getAllPersons(pageable);
+    @Operation(summary = "Get persons (paginated)", description = "Returns a paginated list of persons wrapped in PageResponse")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(ref = "#/components/schemas/PageResponsePersonDto")))
+    })
+    public PageResponse<PersonDto> getAllPersons(Pageable pageable){
+        Page<PersonDto> page = personService.getAllPersons(pageable);
+        return new PageResponse<>(page.getContent(), page.getNumber(), page.getSize(), page.getTotalElements(), page.getTotalPages());
     }
 
     /**
